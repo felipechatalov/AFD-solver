@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
-
 import os
+
+# https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
 
 IMG_TEST_FOLDER = "images/"
 
@@ -65,9 +66,11 @@ def pre_process(img):
     # threshold the image
     # below 230 is black, above 230 is white
     img = cv2.threshold(img, 254, 255, cv2.THRESH_BINARY)[1]
+    #img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
+
 
     # more blur
-    #img2 = cv2.GaussianBlur(img2, (5, 5), 0)
+    #img = cv2.GaussianBlur(img, (5, 5), 0)
     
     return img
 
