@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+import sys
 import matplotlib.pyplot as plt
 
 # https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
@@ -30,7 +31,7 @@ def try_resize(img):
         h = int(h)
         w = int(w)
 
-        print('Resizing image to fit screen: {}x{} -> {}x{}'.format(img.shape[0], img.shape[1], h, w))
+        #print('Resizing image to fit screen: {}x{} -> {}x{}'.format(img.shape[0], img.shape[1], h, w))
 
         img = cv2.resize(img, (w, h))
     return img
@@ -108,9 +109,9 @@ def test_image(path):
 
     img_circles = draw_circles(img_preprocess, circles)
 
-    big_img = np.concatenate((img, img_circles, img_preprocess), axis=1)
+    big_img = np.concatenate((img_circles, img_preprocess), axis=1)
 
-    show_comparison(big_img)
+    show_comparison(img, big_img)
     return 0
 
 def remove_colliding_circles(circles):
@@ -238,9 +239,15 @@ def detect_letters(img):
 
 
 def main():
+
+    user_path = sys.argv[1]
+    if user_path != None:
+        test_image(user_path)
+        return 0
+
     to_test = read_data()
     test_data(to_test)
-    #test_image(to_test[-1])
+    
 
     return 0
 
