@@ -159,11 +159,19 @@ def pre_process(img):
 
     # yet another way to increase contrast
     # img = cv2.convertScaleAbs(img, alpha=1.5, beta=20)
+
     
+
 
     # enhance edges
     edges = cv2.Canny(img, 50, 200)
     #img = cv2.add(img, edges)
+
+
+    # erode
+    kernel = np.ones((5,5),np.uint8)
+    img = cv2.erode(img, kernel, iterations = 1)
+
 
     # threshold the image
     img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
@@ -239,9 +247,8 @@ def detect_letters(img):
 
 
 def main():
-
-    user_path = sys.argv[1]
-    if user_path != None:
+    if len(sys.argv) > 1:
+        user_path = sys.argv[1]
         test_image(user_path)
         return 0
 
