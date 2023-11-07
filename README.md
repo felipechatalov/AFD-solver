@@ -11,3 +11,7 @@ como parametro. Exemplo: python3 ./circle_detection.py images/cad4_edit
 
 
 
+
+INSTRUCOES PARA FOTO
+
+1. Faça circulos grandes, na imagem, recomenda-se que cada circulo possua entre x e y centimetros de raio e seja o mais redondo possivel para facilitar a detecção. Como nos exemplos das imagens "cad4_edit.jpg" e "caderno2.jpg", ambas possuem circulos com raio entre 40 e 50 pixeis.

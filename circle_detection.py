@@ -47,9 +47,9 @@ def show_image(img):
 
 def show_comparison(initial_img, img):
 
-    img = np.concatenate((img, initial_img), axis=1)
+    full_img = np.concatenate((initial_img, img), axis=1)
 
-    cv2.imshow("image", try_resize(img))
+    cv2.imshow("image", try_resize(full_img))
     # checks if any key was pressed or the 'X' button in the window was pressed
     while cv2.getWindowProperty("image", cv2.WND_PROP_VISIBLE) > 0:
         if cv2.waitKey(100) > 0:
@@ -77,41 +77,42 @@ def show_comparison_4x4(img_c, img_cc, img_p, img_pc):
 
 def test_data(files):
     for file in files:
-        
-        img = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
-        img_colored = cv2.imread(file, cv2.IMREAD_COLOR)
-
-        img_preprocess = pre_process(img)
-        circles = detect_circles(img_preprocess)
-
-        #img_circles_rgb = cv2.cvtColor(img_circles, cv2.COLOR_GRAY2RGB)
-
-        img_colored_circles = draw_circles(img_colored, circles)
-        img_preprocess_circles = draw_circles(img_preprocess, circles)
-
-        big_img = np.concatenate((img_colored_circles, image_gray_to_rgb(img_preprocess)), axis=1)
-
-        show_comparison(img_colored, big_img)
-        
-        #show_comparison_4x4(img_colored, img_colored_circles, 
-        #                    image_gray_to_rgb(img_preprocess), image_gray_to_rgb(img_preprocess_circles))
+        test_image(file)
     return 0
 
 
 # read and process image passing its path
-def test_image(path):
-    img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+def test_image(img_path):
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    img_colored = cv2.imread(img_path, cv2.IMREAD_COLOR)
 
     img_preprocess = pre_process(img)
+
     circles = detect_circles(img_preprocess)
+    contours = detect_contours(img_preprocess)
 
-    #img_circles_rgb = cv2.cvtColor(img_circles, cv2.COLOR_GRAY2RGB)
+    img_colored_contours = draw_contours(img_colored, contours)
 
-    img_circles = draw_circles(img_preprocess, circles)
+    img_colored_contours_circles = draw_circles(img_colored_contours, circles)
+    # img_preprocess_circles = draw_circles(img_preprocess, circles)
 
-    big_img = np.concatenate((img_circles, img_preprocess), axis=1)
+    new_img = cv2.cvtColor(np.zeros(img.shape, np.uint8), cv2.COLOR_GRAY2RGB)
+    new_img_contours = draw_contours(new_img, contours, (255, 255, 255))
 
-    show_comparison(img, big_img)
+    new_img = pre_process2(new_img_contours)
+
+    new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2GRAY)
+
+    circles2 = detect_circles(new_img)
+    
+    new_img = cv2.cvtColor(new_img, cv2.COLOR_GRAY2RGB)
+    new_img = draw_circles(new_img, circles2)
+    
+        
+    big_img = np.concatenate((img_colored_contours_circles, image_gray_to_rgb(img_preprocess)), axis=1)
+
+    show_comparison(new_img, big_img)
+        
     return 0
 
 def remove_colliding_circles(circles):
@@ -138,50 +139,28 @@ def is_circle_colliding(c1, c2):
         return True
     return False
 
+def pre_process2(img):
+    output_img = img.copy()
+
+    
+    kernel = np.ones((3,3),np.uint8)
+    output_img = cv2.dilate(output_img, kernel, iterations = 1)
+    
+    #output_img = cv2.medianBlur(output_img, 5)
+
+    return output_img
 
 # ideia: use board detection to enrance the image
 def pre_process(img):
+    output_img = img.copy()
     # remove noise
-    #img = cv2.medianBlur(img, 3)
-    img = cv2.GaussianBlur(img, (9, 9), 2)
-
-
-    # get histogram
-    # hist = cv2.calcHist([img],[0],None,[256],[0,256])
-    # plt.plot(hist)
-    # plt.show()
-
-    # increase contrast
-    img = cv2.addWeighted(img, 2.0, np.zeros(img.shape, img.dtype), 0, 25) 
-
-    # another way to increase contrast
-    #img = cv2.equalizeHist(img)
-
-    # yet another way to increase contrast
-    # img = cv2.convertScaleAbs(img, alpha=1.5, beta=20)
-
-    
-
-
-    # enhance edges
-    edges = cv2.Canny(img, 50, 200)
-    #img = cv2.add(img, edges)
-
-
-    # erode
-    kernel = np.ones((5,5),np.uint8)
-    img = cv2.erode(img, kernel, iterations = 1)
-
+    #output_img = cv2.medianBlur(output_img, 5)
+    #output_img = cv2.GaussianBlur(output_img, (9, 9), 2)
 
     # threshold the image
-    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
-    #img = cv2.threshold(img, 254, 255, cv2.THRESH_BINARY)[1]
+    output_img = cv2.adaptiveThreshold(output_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
 
-
-    # more blur
-    #img = cv2.GaussianBlur(img, (9, 9), 0)
-    
-    return img
+    return output_img
 
 def draw_circles(img, circles):
     output = img.copy()
@@ -190,61 +169,50 @@ def draw_circles(img, circles):
     if circles is not None:
         for (x, y, r) in circles:
             x, y, r = int(x), int(y), int(r)
-            cv2.circle(img, (x, y), r, (0, 255, 0), 4)
-    
+            cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+        print(f"drawn {len(circles)} circles")
     return output
 
 def detect_circles(img):
-    # detect circles    
-    circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=0.7, minDist=30, 
-                                param1=100, param2=20, maxRadius=50, minRadius=10)[0]
-    # circles = cv2.HoughCircles(
-    #     img,               # Input image (grayscale)
-    #     cv2.HOUGH_GRADIENT,# Detection method
-    #     dp=1,              # Inverse ratio of the accumulator resolution
-    #     minDist=50,        # Minimum distance between detected centers
-    #     param1=100,        # Upper threshold for edge detection
-    #     param2=30,         # Threshold for center detection
-    #     minRadius=0,       # Minimum radius
-    #     maxRadius=0        # Maximum radius
-    #     )
-
-    #circles = remove_colliding_circles(circles)
-
+    # detect circles  
+    circles = []  
+    circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=1, minDist=30, 
+                                param1=75, param2=20, maxRadius=50, minRadius=10)
+    if circles is not None:
+        print(f"detected {len(circles[0])} circles")
+        #print(circles)
+        #print(circles[0])
+        circles = circles[0]
+    else:
+        print("No circles found")
     return circles
 
-def detect_letters(img):
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
-    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18)) 
-     
-    dilation = cv2.dilate(thresh1, rect_kernel, iterations = 1) 
-    contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,  
-                                                 cv2.CHAIN_APPROX_NONE) 
-    im2 = img.copy() 
 
-    for cnt in contours: 
-        x, y, w, h = cv2.boundingRect(cnt) 
-        
-        
-        rect = cv2.rectangle(im2, (x, y), (x + w, y + h), (0, 255, 0), 2) 
-        
-        
-        cropped = im2[y:y + h, x:x + w] 
-        
-        
-        file = open("recognized.txt", "a") 
-        
-        
-        text = pytesseract.image_to_string(cropped) 
-        
-        
-        file.write(text) 
-        file.write("\n") 
-      
-    file.close 
-    return 0
+def detect_contours(img):
 
+
+    #edges = cv2.Canny(img, 50, 200)
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
+    contours_final = []
+    #conts = np.array(contours).reshape((-1,1,2)).astype(np.int32)
+
+    for contour in contours:
+        apprx = cv2.approxPolyDP(contour, 0.01*cv2.arcLength(contour, True), True)
+        area = cv2.contourArea(contour)
+        if len(apprx) > 8 and area > 75 and not cv2.isContourConvex(contour):
+            contours_final.append(contour)
+    print(f"detected {len(contours_final)} contours")
+    return contours_final
+
+def draw_contours(img, contours, color = (0, 0, 255)):
+    new_img = img.copy()
+    if contours == []:
+        print("No contours found")
+        return new_img
+    #ctr = np.array(contours).reshape((-1,1,2)).astype(np.int32)
+    cv2.drawContours(new_img, contours, -1, color, 2)
+    return new_img
 
 def main():
     if len(sys.argv) > 1:
