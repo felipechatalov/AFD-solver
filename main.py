@@ -85,66 +85,40 @@ def test_data(files):
 def test_image(img_path):
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     img_colored = cv2.imread(img_path, cv2.IMREAD_COLOR)
+    new_img = cv2.cvtColor(np.zeros(img.shape, np.uint8), cv2.COLOR_GRAY2RGB)
 
     img_preprocess = pre_process(img)
 
-    circles = detect_circles(img_preprocess)
     contours = detect_contours(img_preprocess)
 
-    img_colored_contours = draw_contours(img_colored, contours)
 
-    img_colored_contours_circles = draw_circles(img_colored_contours, circles)
-    # img_preprocess_circles = draw_circles(img_preprocess, circles)
-
-    new_img = cv2.cvtColor(np.zeros(img.shape, np.uint8), cv2.COLOR_GRAY2RGB)
     new_img_contours = draw_contours(new_img, contours, (255, 255, 255))
 
-    new_img = pre_process2(new_img_contours)
+    new_img = dilate(new_img_contours)
 
     new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2GRAY)
 
-    circles2 = detect_circles(new_img)
-    
+    circles = detect_circles(new_img)
+
     new_img = cv2.cvtColor(new_img, cv2.COLOR_GRAY2RGB)
-    new_img = draw_circles(new_img, circles2)
+    new_img = draw_circles(new_img, circles)
     
         
-    big_img = np.concatenate((img_colored_contours_circles, image_gray_to_rgb(img_preprocess)), axis=1)
+
+    img_colored_contours = draw_contours(img_colored, contours)
+    img_colored_contours_circles = draw_circles(img_colored_contours, circles)
+    big_img = np.concatenate((img_colored_contours_circles, cv2.cvtColor(img_preprocess, cv2.COLOR_GRAY2RGB)), axis=1)
 
     show_comparison(new_img, big_img)
         
     return 0
 
-def remove_colliding_circles(circles):
-    new_circles = []
-    print(circles)
-    for c1 in circles:
-        col = False
-        for c2 in circles:
-            if c1[0] != c2[0] and c1[1] != c2[1]:
-                if is_circle_colliding(c1, c2):
-                    col = True
-                    break
-        if not col:
-            new_circles.append(c1)
-    return new_circles
-
-def is_circle_colliding(c1, c2):
-    x1, y1, r1 = c1
-    x2, y2, r2 = c2
-
-    dist = np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
-
-    if dist < r1 + r2:
-        return True
-    return False
-
-def pre_process2(img):
+def dilate(img, kernel_size=3, it=1):
     output_img = img.copy()
 
     
-    kernel = np.ones((3,3),np.uint8)
-    output_img = cv2.dilate(output_img, kernel, iterations = 1)
+    kernel = np.ones((kernel_size,kernel_size),np.uint8)
+    output_img = cv2.dilate(output_img, kernel, iterations = it)
     
     #output_img = cv2.medianBlur(output_img, 5)
 
