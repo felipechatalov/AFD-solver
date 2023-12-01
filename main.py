@@ -157,6 +157,7 @@ def detect_circles(img):
         #print(circles)
         #print(circles[0])
         circles = circles[0]
+        print(circles)
     else:
         print("No circles found")
     return circles
