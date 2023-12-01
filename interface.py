@@ -2,6 +2,9 @@ import tkinter as tk
 from cv2 import imread, IMREAD_GRAYSCALE
 from PIL import Image, ImageTk
 
+
+ROOT = tk.Tk()
+
 CIRCLES_LIST = [[717.5, 651.5, 47.2],
                 [838.5, 264.5, 40.5],
                 [215.5, 556.5, 42.7],
@@ -12,17 +15,21 @@ CIRCLES_LIST = [[717.5, 651.5, 47.2],
                 [ 35.5, 279.5, 37.3]]
 
 class Interface(tk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master)
-        self.master = master
+    def __init__(self):
+        super().__init__()
+        
+        self.master = ROOT
         self.master.title("Interface")
         self.pack()
         self.create_buttons()
-        self.show_image("images/cad4_edit.jpeg")
-        self.show_circles_at(CIRCLES_LIST)
+        self.create_canvas(1635, 920)
+        #self.show_image("images/cad4_edit.jpeg")
+        #self.show_circles_at(CIRCLES_LIST)
         self.master.resizable(False, False)
+        self.canvas = None
 
     def show_circle(self, coords, text):
+        
         x, y, r = coords
         self.canvas.create_oval(x-r, y-r, x+r, y+r, outline="#f11", width=2)
         self.canvas.create_text(x, y, text=text, fill="#f11", font=("Arial", 24))
@@ -37,6 +44,10 @@ class Interface(tk.Frame):
             i += 1
         return
 
+    def create_canvas(self, _width, _height):
+        self.canvas = tk.Canvas(self, width=_width, height=_height)
+        self.canvas.pack()
+
     def show_image(self, path):
         img = ImageTk.PhotoImage(Image.open(path))
         img_w = img.width()
@@ -45,12 +56,9 @@ class Interface(tk.Frame):
 
 
         if img_w > 1635 or img_h > 920:
-            scalew = 1635/img_w 
-            scaleh = 920/img_h
-            img.zoom(scalew, scaleh)
-
-        self.canvas = tk.Canvas(self, width=img_w, height=img_h)
-        self.canvas.pack()
+           scalew = 1635/img_w 
+           scaleh = 920/img_h
+           img.zoom(scalew, scaleh)
         
         self.canvas.create_image(0, 0, anchor=tk.NW, image=img)
         self.canvas.image = img 
@@ -76,10 +84,12 @@ class Interface(tk.Frame):
 
 
 
+def main():
+    app = Interface()
+    app.mainloop()
+    return 0
 
-root = tk.Tk()
-app = Interface(master=root)
-app.mainloop()
-
+if __name__ == "__main__":
+    main()
 
                        
