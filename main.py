@@ -4,9 +4,24 @@ import os
 import sys
 import matplotlib.pyplot as plt
 
+import interface
+
+#from tkinter import Tk
+
 # https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
 
+#ROOT = Tk()
+
 IMG_TEST_FOLDER = "images/"
+
+CIRCLES_LIST = [[717.5, 651.5, 47.2],
+                [838.5, 264.5, 40.5],
+                [215.5, 556.5, 42.7],
+                [186.5, 252.5, 41.4],
+                [842.5, 172.5, 34.3],
+                [620.5, 279.5, 32.9],
+                [508.5, 499.5, 34.3],
+                [ 35.5, 279.5, 37.3]]
 
 
 WIDTH_CAP = 1635
@@ -75,11 +90,46 @@ def show_comparison_4x4(img_c, img_cc, img_p, img_pc):
     return 0
 
 
+def test_image_interface(img_path):
+    app = interface.get_window()
+
+    img = cv2.imread(os.path.join(IMG_TEST_FOLDER, img_path), cv2.IMREAD_GRAYSCALE)
+
+    circles = process_and_detect_circles(img)
+
+
+    app.show_image(os.path.join(IMG_TEST_FOLDER, img_path))
+    app.show_circles_at(circles)
+
+
+    app.master.mainloop()
+    return 0
+
 def test_data(files):
     for file in files:
         test_image(file)
     return 0
 
+def process_and_detect_circles(img):
+    img_copy = img.copy()
+    new_img = cv2.cvtColor(np.zeros(img_copy.shape, np.uint8), cv2.COLOR_GRAY2RGB)
+
+    img_preprocess = pre_process(img_copy)
+
+    contours = detect_contours(img_preprocess)
+
+
+    new_img_contours = draw_contours(new_img, contours, (255, 255, 255))
+
+    new_img = dilate(new_img_contours)
+
+    new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2GRAY)
+
+    circles = detect_circles(new_img)
+
+    return circles
+
+        
 
 # read and process image passing its path
 def test_image(img_path):
@@ -192,7 +242,8 @@ def draw_contours(img, contours, color = (0, 0, 255)):
 def main():
     if len(sys.argv) > 1:
         user_path = sys.argv[1]
-        test_image(user_path)
+        #test_image(user_path)
+        test_image_interface(user_path)
         return 0
 
     to_test = read_data()

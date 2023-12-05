@@ -2,7 +2,6 @@ import tkinter as tk
 from cv2 import imread, IMREAD_GRAYSCALE
 from PIL import Image, ImageTk
 
-
 ROOT = tk.Tk()
 
 CIRCLES_LIST = [[717.5, 651.5, 47.2],
@@ -14,19 +13,41 @@ CIRCLES_LIST = [[717.5, 651.5, 47.2],
                 [508.5, 499.5, 34.3],
                 [ 35.5, 279.5, 37.3]]
 
-class Interface(tk.Frame):
-    def __init__(self):
-        super().__init__()
-        
-        self.master = ROOT
+class Interface():
+    def __init__(self, master):
+        #window = tk.Toplevel(master)
+        self.master = master
         self.master.title("Interface")
-        self.pack()
+        self.master.geometry("1635x920")
+        
         self.create_buttons()
         self.create_canvas(1635, 920)
         #self.show_image("images/cad4_edit.jpeg")
         #self.show_circles_at(CIRCLES_LIST)
-        self.master.resizable(False, False)
-        self.canvas = None
+
+        #self.master.mainloop()
+
+    def create_buttons(self):
+        self.optionsHolder = tk.Frame(self.master, width=100, height=500, bg="blue", )
+        self.optionsHolder.pack(side="left", fill=tk.Y)       
+        
+        self.addState = tk.Button(self.optionsHolder, text="Add State", width=8, height=2, bg="green", fg="white")
+        self.addState.pack()
+
+        self.RmState = tk.Button(self.optionsHolder, text="Remove State", width=8, height=2, bg="red", fg="white")
+        self.RmState.pack()
+
+        self.AddTransition = tk.Button(self.optionsHolder, text="Add Transition", width=8, height=2, bg="green", fg="white")
+        self.AddTransition.pack()
+
+        self.RmTransition = tk.Button(self.optionsHolder, text="Remove Transition", width=8, height=2, bg="red", fg="white")
+        self.RmTransition.pack()
+        return
+
+    def create_canvas(self, _width, _height):
+        self.canvas = tk.Canvas(self.master, width=_width, height=_height)
+        self.canvas.pack()
+        return
 
     def show_circle(self, coords, text):
         
@@ -44,49 +65,28 @@ class Interface(tk.Frame):
             i += 1
         return
 
-    def create_canvas(self, _width, _height):
-        self.canvas = tk.Canvas(self, width=_width, height=_height)
-        self.canvas.pack()
 
     def show_image(self, path):
-        img = ImageTk.PhotoImage(Image.open(path))
-        img_w = img.width()
-        img_h = img.height()
-        print(img_w, img_h)
+        if type(path) == str:
+            path = imread(path, IMREAD_GRAYSCALE)
 
+        img = Image.fromarray(path)
+        pimg = ImageTk.PhotoImage(img)
+
+        img_w, img_h = img.size
 
         if img_w > 1635 or img_h > 920:
            scalew = 1635/img_w 
            scaleh = 920/img_h
-           img.zoom(scalew, scaleh)
-        
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=img)
-        self.canvas.image = img 
+           pimg.zoom(scalew, scaleh)
 
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=pimg)
+        self.canvas.image = pimg 
 
-
-    def create_buttons(self):
-        self.optionsHolder = tk.Frame(self, width=100, height=500, bg="blue", )
-        self.optionsHolder.pack(side="left", fill=tk.Y)
-
-        self.addState = tk.Button(self.optionsHolder, text="Add State", width=8, height=2, bg="green", fg="white")
-        self.addState.pack()
-
-        self.RmState = tk.Button(self.optionsHolder, text="Remove State", width=8, height=2, bg="red", fg="white")
-        self.RmState.pack()
-
-        self.AddTransition = tk.Button(self.optionsHolder, text="Add Transition", width=8, height=2, bg="green", fg="white")
-        self.AddTransition.pack()
-
-        self.RmTransition = tk.Button(self.optionsHolder, text="Remove Transition", width=8, height=2, bg="red", fg="white")
-        self.RmTransition.pack()
-
-
-
+def get_window():
+    return Interface(ROOT)
 
 def main():
-    app = Interface()
-    app.mainloop()
     return 0
 
 if __name__ == "__main__":
