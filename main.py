@@ -98,7 +98,7 @@ def test_image_interface(img_path):
 
 def test_data(files):
     for file in files:
-        test_image(file)
+        test_image_step_by_step(file)
     return 0
 
 
