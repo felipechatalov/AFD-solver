@@ -69,9 +69,6 @@ def read_data():
         test_files.append(os.path.join(os.getcwd(), IMG_TEST_FOLDER, file))
     return test_files
 
-def image_gray_to_rgb(img):
-    return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
 def show_comparison_4x4(img_c, img_cc, img_p, img_pc):
     colored_circles = np.concatenate((img_cc, img_c), axis=1)
     preprocessed_circles = np.concatenate((img_pc, img_p), axis=1)
@@ -181,8 +178,6 @@ def detect_circles(img):
 
 
 def detect_contours(img):
-
-
     contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
     contours_final = []
@@ -200,7 +195,6 @@ def draw_contours(img, contours, color = (0, 0, 255)):
     if contours == []:
         print("No contours found")
         return new_img
-    #ctr = np.array(contours).reshape((-1,1,2)).astype(np.int32)
     cv2.drawContours(new_img, contours, -1, color, 2)
     return new_img
 
@@ -212,7 +206,6 @@ def main():
 
     to_test = read_data()
     test_data(to_test)
-    
 
     return 0
 
