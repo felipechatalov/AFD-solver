@@ -14,15 +14,6 @@ import interface
 
 IMG_TEST_FOLDER = "images/"
 
-CIRCLES_LIST = [[717.5, 651.5, 47.2],
-                [838.5, 264.5, 40.5],
-                [215.5, 556.5, 42.7],
-                [186.5, 252.5, 41.4],
-                [842.5, 172.5, 34.3],
-                [620.5, 279.5, 32.9],
-                [508.5, 499.5, 34.3],
-                [ 35.5, 279.5, 37.3]]
-
 
 WIDTH_CAP = 1635
 HEIGHT_CAP = 920
@@ -95,8 +86,8 @@ def test_image_interface(img_path):
 
     img = cv2.imread(os.path.join(IMG_TEST_FOLDER, img_path), cv2.IMREAD_GRAYSCALE)
 
-    circles = process_and_detect_circles(img)
-
+    processed_img = pre_process(img)
+    circles = detect_circles(processed_img)
 
     app.show_image(os.path.join(IMG_TEST_FOLDER, img_path))
     app.show_circles_at(circles)
@@ -110,57 +101,49 @@ def test_data(files):
         test_image(file)
     return 0
 
-def process_and_detect_circles(img):
+
+def pre_process(img):
     img_copy = img.copy()
     new_img = cv2.cvtColor(np.zeros(img_copy.shape, np.uint8), cv2.COLOR_GRAY2RGB)
 
-    img_preprocess = pre_process(img_copy)
+    threshold_img = cv2.adaptiveThreshold(img_copy, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
 
-    contours = detect_contours(img_preprocess)
-
+    contours = detect_contours(threshold_img)
 
     new_img_contours = draw_contours(new_img, contours, (255, 255, 255))
 
-    new_img = dilate(new_img_contours)
+    output_img = dilate(new_img_contours)
 
-    new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2GRAY)
-
-    circles = detect_circles(new_img)
-
-    return circles
-
-        
+    output_img = cv2.cvtColor(output_img, cv2.COLOR_RGB2GRAY)
+    
+    return output_img
+  
 
 # read and process image passing its path
-def test_image(img_path):
+def test_image_step_by_step(img_path):
+    # open source img in grayscale, colored and blank image
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     img_colored = cv2.imread(img_path, cv2.IMREAD_COLOR)
     new_img = cv2.cvtColor(np.zeros(img.shape, np.uint8), cv2.COLOR_GRAY2RGB)
 
+    # pre process
     img_preprocess = pre_process(img)
 
-    contours = detect_contours(img_preprocess)
-
-
-    new_img_contours = draw_contours(new_img, contours, (255, 255, 255))
-
-    new_img = dilate(new_img_contours)
-
-    new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2GRAY)
-
+    # detect circles
     circles = detect_circles(new_img)
 
+    # draw circles in blank image
     new_img = cv2.cvtColor(new_img, cv2.COLOR_GRAY2RGB)
     new_img = draw_circles(new_img, circles)
     
-        
+    # draw circles in colored image
+    img_colored_circles = draw_circles(img_colored, circles)
 
-    img_colored_contours = draw_contours(img_colored, contours)
-    img_colored_contours_circles = draw_circles(img_colored_contours, circles)
-    big_img = np.concatenate((img_colored_contours_circles, cv2.cvtColor(img_preprocess, cv2.COLOR_GRAY2RGB)), axis=1)
+    # concatenate images
+    big_img = np.concatenate((img_colored_circles, cv2.cvtColor(img_preprocess, cv2.COLOR_GRAY2RGB)), axis=1)
 
+    # show images
     show_comparison(new_img, big_img)
-        
     return 0
 
 def dilate(img, kernel_size=3, it=1):
@@ -174,22 +157,9 @@ def dilate(img, kernel_size=3, it=1):
 
     return output_img
 
-# ideia: use board detection to enrance the image
-def pre_process(img):
-    output_img = img.copy()
-    # remove noise
-    #output_img = cv2.medianBlur(output_img, 5)
-    #output_img = cv2.GaussianBlur(output_img, (9, 9), 2)
-
-    # threshold the image
-    output_img = cv2.adaptiveThreshold(output_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
-
-    return output_img
-
 def draw_circles(img, circles):
     output = img.copy()
 
-    # if we find circles we draw them on top of the copy of the image
     if circles is not None:
         for (x, y, r) in circles:
             x, y, r = int(x), int(y), int(r)
@@ -198,14 +168,11 @@ def draw_circles(img, circles):
     return output
 
 def detect_circles(img):
-    # detect circles  
     circles = []  
     circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=1, minDist=30, 
                                 param1=75, param2=20, maxRadius=50, minRadius=10)
     if circles is not None:
         print(f"detected {len(circles[0])} circles")
-        #print(circles)
-        #print(circles[0])
         circles = circles[0]
         print(circles)
     else:
@@ -216,11 +183,9 @@ def detect_circles(img):
 def detect_contours(img):
 
 
-    #edges = cv2.Canny(img, 50, 200)
     contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
     contours_final = []
-    #conts = np.array(contours).reshape((-1,1,2)).astype(np.int32)
 
     for contour in contours:
         apprx = cv2.approxPolyDP(contour, 0.01*cv2.arcLength(contour, True), True)
@@ -242,7 +207,6 @@ def draw_contours(img, contours, color = (0, 0, 255)):
 def main():
     if len(sys.argv) > 1:
         user_path = sys.argv[1]
-        #test_image(user_path)
         test_image_interface(user_path)
         return 0
 
