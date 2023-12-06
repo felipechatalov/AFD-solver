@@ -75,7 +75,6 @@ class Interface():
             if rm != None:
                 # remove circle from list
                 self.circles_holder.pop(rm)
-                print(self.circles_holder)
                 
                 # redraw circles
                 self.redraw_circles(self.circles_holder)
