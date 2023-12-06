@@ -17,6 +17,7 @@ class Interface():
     def __init__(self, master, MAX_WIDTH=1280, MAX_HEIGHT=720):
         #window = tk.Toplevel(master)
         self.command_state = "None"
+        self.circles_holder = []
         self.master = master
         self.master.title("Interface")
         self.master.geometry(f"{MAX_WIDTH}x{MAX_HEIGHT}")
@@ -26,19 +27,19 @@ class Interface():
         self.create_canvas(MAX_WIDTH, MAX_HEIGHT)
 
     def set_cmd_AS(self):
-        self.set_command_state("AddState")
+        self.command_state = "AddState"
         print(f"command state set to {self.command_state}")
         return
     def set_cmd_RS(self):
-        self.set_command_state("RmState")
+        self.command_state = "RmState"
         print(f"command state set to {self.command_state}")
         return
     def set_cmd_AT(self):
-        self.set_command_state("AddTransition")
+        self.command_state = "AddTransition"
         print(f"command state set to {self.command_state}")
         return
     def set_cmd_RT(self):
-        self.set_command_state("RmTransition")
+        self.command_state = "RmTransition"
         print(f"command state set to {self.command_state}")
         return
 
@@ -46,8 +47,13 @@ class Interface():
     def mouse_click_1(self, event):
         print(f"clicked at {event.x}, {event.y}")
         if self.command_state == "AddState":
-            self.show_circle((event.x, event.y, 20), "S0")
+            self.show_circle((event.x, event.y, 30), f"S{len(self.circles_holder)}")
+            self.circles_holder.append((event.x, event.y, 30))
+
         elif self.command_state == "RmState":
+            # detect if click is inside a circle
+            # if true, remove circle from list
+            # redraw circles 
             pass
         elif self.command_state == "AddTransition":
             pass
@@ -95,6 +101,7 @@ class Interface():
 
     def create_canvas(self, _width, _height):
         self.canvas = tk.Canvas(self.master, width=_width, height=_height)
+        self.canvas.bind("<Button-1>", self.mouse_click_1)
         self.canvas.pack()
         return
 
@@ -103,6 +110,7 @@ class Interface():
         x, y, r = coords
         self.canvas.create_oval(x-r, y-r, x+r, y+r, outline="#f11", width=2)
         self.canvas.create_text(x, y, text=text, fill="#f11", font=("Arial", 24))
+        print(f"circle shown at {x}, {y}")
         return
 
     def show_circles_at(self, circles):
@@ -111,6 +119,7 @@ class Interface():
         i = 0
         for circle in circles:
             self.show_circle(circle, f"S{i}")
+            self.circles_holder.append(circle)
             i += 1
         return
 
