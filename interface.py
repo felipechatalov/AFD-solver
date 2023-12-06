@@ -18,6 +18,7 @@ class Interface():
         #window = tk.Toplevel(master)
         self.command_state = "None"
         self.circles_holder = []
+        self.image_holder = None
         self.master = master
         self.master.title("Interface")
         self.master.geometry(f"{MAX_WIDTH}x{MAX_HEIGHT}")
@@ -43,6 +44,24 @@ class Interface():
         print(f"command state set to {self.command_state}")
         return
 
+    def is_inside_circle(self, x, y, circle):
+        x0, y0, r = circle
+        return (x-x0)**2 + (y-y0)**2 <= r**2
+    def is_inside_any_circle(self, x, y, circles):
+        index = 0
+        for circle in circles:
+            if self.is_inside_circle(x, y, circle):
+                return index
+            index += 1
+        return None
+
+    def redraw_circles(self, circles):
+        self.canvas.delete("state")
+        i = 0
+        for circle in circles:
+            self.show_circle(circle, f"S{i}")
+            i+=1
+        return
 
     def mouse_click_1(self, event):
         print(f"clicked at {event.x}, {event.y}")
@@ -52,8 +71,17 @@ class Interface():
 
         elif self.command_state == "RmState":
             # detect if click is inside a circle
-            # if true, remove circle from list
-            # redraw circles 
+            rm = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
+            if rm != None:
+                # remove circle from list
+                print(f"removing state with index {rm}")
+                self.circles_holder.pop(rm)
+                print("new list: ")
+                print(self.circles_holder)
+                
+                # redraw circles
+                self.redraw_circles(self.circles_holder)
+                pass
             pass
         elif self.command_state == "AddTransition":
             pass
@@ -108,8 +136,8 @@ class Interface():
     def show_circle(self, coords, text):
         
         x, y, r = coords
-        self.canvas.create_oval(x-r, y-r, x+r, y+r, outline="#f11", width=2)
-        self.canvas.create_text(x, y, text=text, fill="#f11", font=("Arial", 24))
+        self.canvas.create_oval(x-r, y-r, x+r, y+r, outline="#f11", width=2, tags="state")
+        self.canvas.create_text(x, y, text=text, fill="#f11", font=("Arial", 24), tags="state")
         print(f"circle shown at {x}, {y}")
         return
 
@@ -136,6 +164,7 @@ class Interface():
            #scaleh = self._HEIGHT/img_h
         img.resize((self._WIDTH, self._HEIGHT))
         pimg = ImageTk.PhotoImage(img)
+        self.image_holder = pimg
 
         self.canvas.create_image(0, 0, anchor=tk.NW, image=pimg)
         self.canvas.image = pimg 
