@@ -74,9 +74,7 @@ class Interface():
             rm = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
             if rm != None:
                 # remove circle from list
-                print(f"removing state with index {rm}")
                 self.circles_holder.pop(rm)
-                print("new list: ")
                 print(self.circles_holder)
                 
                 # redraw circles
