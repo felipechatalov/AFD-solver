@@ -14,33 +14,82 @@ CIRCLES_LIST = [[717.5, 651.5, 47.2],
                 [ 35.5, 279.5, 37.3]]
 
 class Interface():
-    def __init__(self, master):
+    def __init__(self, master, MAX_WIDTH=1280, MAX_HEIGHT=720):
         #window = tk.Toplevel(master)
+        self.command_state = "None"
         self.master = master
         self.master.title("Interface")
-        self.master.geometry("1635x920")
-        
+        self.master.geometry(f"{MAX_WIDTH}x{MAX_HEIGHT}")
+        self._WIDTH = MAX_WIDTH
+        self._HEIGHT = MAX_HEIGHT
         self.create_buttons()
-        self.create_canvas(1635, 920)
-        #self.show_image("images/cad4_edit.jpeg")
-        #self.show_circles_at(CIRCLES_LIST)
+        self.create_canvas(MAX_WIDTH, MAX_HEIGHT)
 
-        #self.master.mainloop()
+    def set_cmd_AS(self):
+        self.set_command_state("AddState")
+        print(f"command state set to {self.command_state}")
+        return
+    def set_cmd_RS(self):
+        self.set_command_state("RmState")
+        print(f"command state set to {self.command_state}")
+        return
+    def set_cmd_AT(self):
+        self.set_command_state("AddTransition")
+        print(f"command state set to {self.command_state}")
+        return
+    def set_cmd_RT(self):
+        self.set_command_state("RmTransition")
+        print(f"command state set to {self.command_state}")
+        return
+
+
+    def mouse_click_1(self, event):
+        print(f"clicked at {event.x}, {event.y}")
+        if self.command_state == "AddState":
+            self.show_circle((event.x, event.y, 20), "S0")
+        elif self.command_state == "RmState":
+            pass
+        elif self.command_state == "AddTransition":
+            pass
+        elif self.command_state == "RmTransition":
+            pass
+        else:
+            pass
+        return        
 
     def create_buttons(self):
-        self.optionsHolder = tk.Frame(self.master, width=100, height=500, bg="blue", )
-        self.optionsHolder.pack(side="left", fill=tk.Y)       
+        self.optionsHolder = tk.Frame(self.master, width=150, height=self._HEIGHT, bg="white", )
+        self.optionsHolder.pack(fill=tk.Y, side=tk.LEFT)
+        #self.optionsHolder.place(x=0, y=self._HEIGHT/2, anchor=tk.W)
+        self.optionsHolder.pack()
+
         
-        self.addState = tk.Button(self.optionsHolder, text="Add State", width=8, height=2, bg="green", fg="white")
+        self.addState = tk.Button(self.optionsHolder, 
+                                    command = self.set_cmd_AS,
+                                    text="Add State", 
+                                    width=16, height=2, 
+                                    bg="green", fg="white")
         self.addState.pack()
 
-        self.RmState = tk.Button(self.optionsHolder, text="Remove State", width=8, height=2, bg="red", fg="white")
+        self.RmState = tk.Button(self.optionsHolder, 
+                                    command = self.set_cmd_RS,
+                                    text="Remove State", 
+                                    width=16, height=2, 
+                                    bg="red", fg="white")
         self.RmState.pack()
 
-        self.AddTransition = tk.Button(self.optionsHolder, text="Add Transition", width=8, height=2, bg="green", fg="white")
+        self.AddTransition = tk.Button(self.optionsHolder, 
+                                       command = self.set_cmd_AT,
+                                       text="Add Transition", 
+                                       width=16, height=2, 
+                                       bg="green", fg="white")
         self.AddTransition.pack()
 
-        self.RmTransition = tk.Button(self.optionsHolder, text="Remove Transition", width=8, height=2, bg="red", fg="white")
+        self.RmTransition = tk.Button(self.optionsHolder, 
+                                      command = self.set_cmd_RT,
+                                      text="Remove Transition", 
+                                      width=16, height=2, 
+                                      bg="red", fg="white")
         self.RmTransition.pack()
         return
 
@@ -71,14 +120,13 @@ class Interface():
             path = imread(path, IMREAD_GRAYSCALE)
 
         img = Image.fromarray(path)
+        print(type(img))
+        #img_w, img_h = img.size
+        #if img_w > self._WIDTH or img_h > self._HEIGHT:
+           #scalew = self._WIDTH/img_w 
+           #scaleh = self._HEIGHT/img_h
+        img.resize((self._WIDTH, self._HEIGHT))
         pimg = ImageTk.PhotoImage(img)
-
-        img_w, img_h = img.size
-
-        if img_w > 1635 or img_h > 920:
-           scalew = 1635/img_w 
-           scaleh = 920/img_h
-           pimg.zoom(scalew, scaleh)
 
         self.canvas.create_image(0, 0, anchor=tk.NW, image=pimg)
         self.canvas.image = pimg 
