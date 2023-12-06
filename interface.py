@@ -135,7 +135,7 @@ class Interface():
         x, y, r = coords
         self.canvas.create_oval(x-r, y-r, x+r, y+r, outline="#f11", width=2, tags="state")
         self.canvas.create_text(x, y, text=text, fill="#f11", font=("Arial", 24), tags="state")
-        print(f"circle shown at {x}, {y}")
+        #print(f"circle shown at {x}, {y}")
         return
 
     def show_circles_at(self, circles):
@@ -154,11 +154,7 @@ class Interface():
             path = imread(path, IMREAD_GRAYSCALE)
 
         img = Image.fromarray(path)
-        print(type(img))
-        #img_w, img_h = img.size
-        #if img_w > self._WIDTH or img_h > self._HEIGHT:
-           #scalew = self._WIDTH/img_w 
-           #scaleh = self._HEIGHT/img_h
+
         img.resize((self._WIDTH, self._HEIGHT))
         pimg = ImageTk.PhotoImage(img)
         self.image_holder = pimg
