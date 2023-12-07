@@ -18,6 +18,7 @@ class Interface():
         #window = tk.Toplevel(master)
         self.command_state = "None"
         self.circles_holder = []
+        self.trans_holder = []
         self.image_holder = None
         self.master = master
         self.master.title("Interface")
@@ -128,6 +129,32 @@ class Interface():
         self.canvas = tk.Canvas(self.master, width=_width, height=_height)
         self.canvas.bind("<Button-1>", self.mouse_click_1)
         self.canvas.pack()
+        return
+
+    def show_transition(self, transition):
+        t1, t2 = transition
+        t1x, t1y, t1r = self.circles_holder[t1]
+        t2x, t2y, t2r = self.circles_holder[t2]
+
+        offsetx1 = t1r * (t2x - t1x) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+        offsety1 = t1r * (t2y - t1y) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+        
+        offsetx2 = t2r * (t1x - t2x) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+        offsety2 = t2r * (t1y - t2y) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+
+        t1x += offsetx1
+        t1y += offsety1
+        t2x += offsetx2
+        t2y += offsety2
+
+        self.canvas.create_line(t1x, t1y, t2x, t2y, fill="#f11", width=2, tags="transition")
+        return
+
+    def show_transitions(self, transitions):
+        if transitions == []:
+            return
+        for transition in transitions:
+            self.show_transition(transition)
         return
 
     def show_circle(self, coords, text):

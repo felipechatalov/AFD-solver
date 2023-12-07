@@ -14,6 +14,7 @@ import interface
 
 IMG_TEST_FOLDER = "images/"
 
+TEST_TRANSITIONS = [[1, 2]]
 
 WIDTH_CAP = 1635
 HEIGHT_CAP = 920
@@ -88,7 +89,7 @@ def test_image_interface(img_path):
 
     app.show_image(os.path.join(IMG_TEST_FOLDER, img_path))
     app.show_circles_at(circles)
-
+    app.show_transitions(TEST_TRANSITIONS)
 
     app.master.mainloop()
     return 0
@@ -127,10 +128,10 @@ def test_image_step_by_step(img_path):
     img_preprocess = pre_process(img)
 
     # detect circles
-    circles = detect_circles(new_img)
+    circles = detect_circles(img_preprocess)
 
     # draw circles in blank image
-    new_img = cv2.cvtColor(new_img, cv2.COLOR_GRAY2RGB)
+    #new_img = cv2.cvtColor(new_img, cv2.COLOR_GRAY2RGB)
     new_img = draw_circles(new_img, circles)
     
     # draw circles in colored image
