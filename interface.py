@@ -189,7 +189,7 @@ class Interface():
         self.canvas.create_image(0, 0, anchor=tk.NW, image=pimg)
         self.canvas.image = pimg 
 
-def get_window():
+def create_window():
     return Interface(ROOT)
 
 def main():

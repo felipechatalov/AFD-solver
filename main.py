@@ -80,7 +80,7 @@ def show_comparison_4x4(img_c, img_cc, img_p, img_pc):
 
 
 def test_image_interface(img_path):
-    app = interface.get_window()
+    app = interface.create_window()
 
     img = cv2.imread(os.path.join(IMG_TEST_FOLDER, img_path), cv2.IMREAD_GRAYSCALE)
 
