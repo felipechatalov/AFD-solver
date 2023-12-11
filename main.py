@@ -87,9 +87,13 @@ def test_image_interface(img_path):
     processed_img = pre_process(img)
     circles = detect_circles(processed_img)
 
+    transitions = detect_transitions(processed_img)
+
+
+
     app.show_image(os.path.join(IMG_TEST_FOLDER, img_path))
     app.show_circles_at(circles)
-    app.show_transitions(TEST_TRANSITIONS)
+    app.show_transitions(transitions)
 
     app.master.mainloop()
     return 0
@@ -137,6 +141,9 @@ def test_image_step_by_step(img_path):
     # draw circles in colored image
     img_colored_circles = draw_circles(img_colored, circles)
 
+    ts = detect_lines(img_preprocess)
+
+    img_colored_circles = debug_draw_quads(img_colored_circles, ts)
     # concatenate images
     big_img = np.concatenate((img_colored_circles, cv2.cvtColor(img_preprocess, cv2.COLOR_GRAY2RGB)), axis=1)
 
@@ -155,13 +162,35 @@ def dilate(img, kernel_size=3, it=1):
 
     return output_img
 
+def is_point_inside_quad(point, quad):
+    x, y = point
+    x1, y1, x2, y2, x3, y3, x4, y4 = quad
+    if x1 <= x <= x2 and y1 <= y <= y2:
+        return True
+    if x2 <= x <= x3 and y2 <= y <= y3:
+        return True
+    if x3 <= x <= x4 and y3 <= y <= y4:
+        return True
+    if x4 <= x <= x1 and y4 <= y <= y1:
+        return True
+    return False
+
+def debug_draw_quads(img, quads):
+
+    for q in quads:
+        x1, y1, w, h = q
+        cv2.rectangle(img, (x1, y1), (x1+w, y1+h), (0, 255, 0), 3)
+
+    return img
+
+
 def draw_circles(img, circles):
     output = img.copy()
 
     if circles is not None:
         for (x, y, r) in circles:
             x, y, r = int(x), int(y), int(r)
-            cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+            cv2.circle(output, (x, y), r, (255, 0, 0), 4)
         print(f"drawn {len(circles)} circles")
     return output
 
@@ -176,6 +205,26 @@ def detect_circles(img):
     else:
         print("No circles found")
     return circles
+
+def detect_transitions(img):
+    lines = detect_lines(img)
+
+    print(lines)
+
+    return []
+
+def detect_lines(img):
+    cont, hier = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    lines = []
+
+    for c in cont:
+        x, y, w, h = cv2.boundingRect(c)
+        if w > 50 or h > 50:
+            lines.append((x, y, w, h))
+
+    print(f"detected {len(lines)} lines")
+    return lines
 
 
 def detect_contours(img):
