@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 
 import interface
 
-#from tkinter import Tk
 
 # https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html
 
-#ROOT = Tk()
+
+# TODO check if img is bigger than some value, if true resize it to fit screen
 
 IMG_TEST_FOLDER = "images/"
 
@@ -70,19 +70,11 @@ def read_data():
         test_files.append(os.path.join(os.getcwd(), IMG_TEST_FOLDER, file))
     return test_files
 
-def show_comparison_4x4(img_c, img_cc, img_p, img_pc):
-    colored_circles = np.concatenate((img_cc, img_c), axis=1)
-    preprocessed_circles = np.concatenate((img_pc, img_p), axis=1)
-    big_img = np.concatenate((colored_circles, preprocessed_circles), axis=0)
-
-    show_image(big_img)
-    return 0
-
 
 def test_image_interface(img_path):
     app = interface.create_window()
 
-    img = cv2.imread(os.path.join(IMG_TEST_FOLDER, img_path), cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
     processed_img = pre_process(img)
     circles = detect_circles(processed_img)
@@ -91,7 +83,7 @@ def test_image_interface(img_path):
 
 
 
-    app.show_image(os.path.join(IMG_TEST_FOLDER, img_path))
+    app.show_image(img_path)
     app.show_circles_at(circles)
     app.show_transitions(transitions)
 
@@ -179,7 +171,7 @@ def debug_draw_quads(img, quads):
 
     for q in quads:
         x1, y1, w, h = q
-        cv2.rectangle(img, (x1, y1), (x1+w, y1+h), (0, 255, 0), 3)
+        cv2.rectangle(img, (x1, y1), (x1+w, y1+h), (0, 0, 255), 3)
 
     return img
 
@@ -190,7 +182,7 @@ def draw_circles(img, circles):
     if circles is not None:
         for (x, y, r) in circles:
             x, y, r = int(x), int(y), int(r)
-            cv2.circle(output, (x, y), r, (255, 0, 0), 4)
+            cv2.circle(output, (x, y), r, (0, 255, 0), 4)
         print(f"drawn {len(circles)} circles")
     return output
 
