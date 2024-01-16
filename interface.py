@@ -22,7 +22,7 @@ class Interface():
         self.image_holder = None
         self.master = master
         self.master.title("Interface")
-        self.master.geometry(f"{MAX_WIDTH}x{MAX_HEIGHT}")
+        self.master.geometry("1430x720")
         self.aux_add_transition = None
         self._WIDTH = MAX_WIDTH
         self._HEIGHT = MAX_HEIGHT
@@ -280,9 +280,9 @@ class Interface():
 
         img = Image.fromarray(path)
 
-        img.resize((self._WIDTH, self._HEIGHT))
+        img = img.resize((1280, 720))
         pimg = ImageTk.PhotoImage(img)
-        self.image_holder = pimg
+        #self.image_holder = pimg
 
         self.canvas.create_image(0, 0, anchor=tk.NW, image=pimg)
         self.canvas.image = pimg 

@@ -16,35 +16,13 @@ IMG_TEST_FOLDER = "images/"
 
 TEST_TRANSITIONS = [[1, 2]]
 
-WIDTH_CAP = 1635
-HEIGHT_CAP = 920
-def try_resize(img):
-    if img.shape[0] > WIDTH_CAP or img.shape[1] > HEIGHT_CAP:
-        h_proportion = img.shape[0] / img.shape[1]
-        w_proportion = img.shape[1] / img.shape[0]
-
-        h = img.shape[0]
-        w = img.shape[1]
+WIDTH_CAP = 1280
+HEIGHT_CAP = 720
 
 
-        while w > WIDTH_CAP:
-            w -= 1
-            h -= h_proportion
-        
-        while h > HEIGHT_CAP:
-            h -= 1
-            w -= w_proportion
-        
-        h = int(h)
-        w = int(w)
-
-        #print('Resizing image to fit screen: {}x{} -> {}x{}'.format(img.shape[0], img.shape[1], h, w))
-
-        img = cv2.resize(img, (w, h))
-    return img
 
 def show_image(img):
-    cv2.imshow("image", try_resize(img))
+    cv2.imshow("image", img.resize((WIDTH_CAP, HEIGHT_CAP)))
     # checks if any key was pressed or the 'X' button in the window was pressed
     while cv2.getWindowProperty("image", cv2.WND_PROP_VISIBLE) > 0:
         if cv2.waitKey(100) > 0:
@@ -56,7 +34,7 @@ def show_comparison(initial_img, img):
 
     full_img = np.concatenate((initial_img, img), axis=1)
 
-    cv2.imshow("image", try_resize(full_img))
+    cv2.imshow("image", full_img.resize((WIDTH_CAP, HEIGHT_CAP)))
     # checks if any key was pressed or the 'X' button in the window was pressed
     while cv2.getWindowProperty("image", cv2.WND_PROP_VISIBLE) > 0:
         if cv2.waitKey(100) > 0:
@@ -75,7 +53,8 @@ def test_image_interface(img_path):
     app = interface.create_window()
 
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-
+    img = cv2.resize(img, (WIDTH_CAP, HEIGHT_CAP))
+    
     processed_img = pre_process(img)
     circles = detect_circles(processed_img)
 
