@@ -114,9 +114,6 @@ class Interface():
                 print("existing transition")
                 return
 
-            if len(values) != 3 or values[2] not in ["d", "D", "e", "E"]:
-                print("invalid input")
-                return
 
             t1x, t1y, t1r = self.circles_holder[t1]
             t2x, t2y, t2r = self.circles_holder[t2]
