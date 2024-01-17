@@ -24,6 +24,9 @@ class Interface():
         self.master.title("Interface")
         self.master.geometry("1430x720")
         self.aux_add_transition = None
+        self.aux_rm_transition = None
+        self.InitialState = None
+        self.FinalState = None
         self._WIDTH = MAX_WIDTH
         self._HEIGHT = MAX_HEIGHT
         self.create_buttons()
@@ -45,6 +48,15 @@ class Interface():
         self.command_state = "RmTransition"
         print(f"command state set to {self.command_state}")
         return
+    def set_cmd_IS(self):
+        self.command_state = "InitialState"
+        print(f"command state set to {self.command_state}")
+        return
+    def set_cmd_FS(self):
+        self.command_state = "FinalState"
+        print(f"command state set to {self.command_state}")
+        return
+
 
     def is_inside_circle(self, x, y, circle):
         x0, y0, r = circle
@@ -64,6 +76,20 @@ class Interface():
         for circle in circles:
             self.show_circle(circle, f"S{i}")
             i+=1
+        
+        # extra circle for initial state
+        print(self.InitialState)
+        if self.InitialState is not None:
+            ix, iy, ir = circles[self.InitialState]
+            self.canvas.create_oval(ix-ir+5, iy-ir+5, ix+ir-5, iy+ir-5, outline="#ff1020", width=2, tags="state")
+            self.canvas.create_text(ix, iy+20, text="Inicial", fill="#0000ff", font=("Arial", 24), tags="state")
+        
+        # extra circle for final state
+        if self.FinalState is not None:
+            fx, fy, fr = circles[self.FinalState]
+            self.canvas.create_oval(fx-fr+5, fy-fr+5, fx+fr-5, fy+fr-5, outline="#ff1020", width=2, tags="state")
+            self.canvas.create_text(fx, fy+20, text="Final", fill="#0000ff", font=("Arial", 24), tags="state")
+
         return
 
     def mouse_click_1(self, event):
@@ -95,10 +121,38 @@ class Interface():
                     self.add_transition(self.aux_add_transition, aux)
                 
         elif self.command_state == "RmTransition":
-            pass
-        else:
-            pass
+            if self.aux_rm_transition is None:
+                self.aux_rm_transition = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
+                print(f"aux_rm_transition set to {self.aux_rm_transition}")
+            else:
+                aux = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
+                print(f"aux is {aux}")
+                if self.aux_rm_transition is not None and aux is not None:
+                    print(f"removing first transition from S{self.aux_rm_transition} to S{aux}")
+                    self.rm_transition(self.aux_rm_transition, aux)
+                    self.aux_rm_transition = None
+
+
+
+        elif self.command_state == "InitialState":
+            self.InitialState = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
+            print(f"initial state set to {self.InitialState}")
+            self.redraw_circles(self.circles_holder)
+        elif self.command_state == "FinalState":
+            self.FinalState = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
+            print(f"final state set to {self.FinalState}")
+            self.redraw_circles(self.circles_holder)
         return        
+
+    def rm_transition(self, t1, t2):
+        for transition in self.transitions_holder:
+            if t1 == transition[0] and t2 == transition[1]:
+                print(f"removing transition {transition}")
+                self.transitions_holder.remove(transition)
+                break
+        self.redraw_transitions(self.transitions_holder)
+        
+
 
     def add_transition(self, t1, t2):
         sec_window = tk.Toplevel(self.master)
@@ -138,13 +192,14 @@ class Interface():
 
             final = (pmedio[0] + vetordeslocado[0], pmedio[1] + vetordeslocado[1])
 
-
+            print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
             number = self.number_of_transitions_beetween(t1, t2)
 
             self.canvas.create_text(final[0], final[1]+30*(number-1), text=values, fill="#0000ff", font=("Arial", 24), tags="transition")
             self.transitions_holder.append((t1, t2, values))
             self.aux_add_transition = None
             self.show_transitions(self.transitions_holder)
+            print("adicionado texto em ", final[0], final[1]+30*(number-1))
 
 
             sec_window.destroy()
@@ -155,7 +210,7 @@ class Interface():
         
     def is_any_transition_with(self, t1, t2, values):
         for transition in self.transitions_holder:
-            if t1 == transition[0] and t2 == transition[1] and values == transition[2]:
+            if t1 == transition[0] and t2 == transition[1] and (values == "" or values == transition[2]):
                 return True
         return False
 
@@ -173,33 +228,48 @@ class Interface():
         self.optionsHolder.pack()
 
         
-        self.addState = tk.Button(self.optionsHolder, 
+        self.btaddState = tk.Button(self.optionsHolder, 
                                     command = self.set_cmd_AS,
                                     text="Add State", 
                                     width=16, height=2, 
                                     bg="green", fg="white")
-        self.addState.pack()
+        self.btaddState.pack()
 
-        self.RmState = tk.Button(self.optionsHolder, 
+        self.btRmState = tk.Button(self.optionsHolder, 
                                     command = self.set_cmd_RS,
                                     text="Remove State", 
                                     width=16, height=2, 
                                     bg="red", fg="white")
-        self.RmState.pack()
+        self.btRmState.pack()
 
-        self.AddTransition = tk.Button(self.optionsHolder, 
+        self.btAddTransition = tk.Button(self.optionsHolder, 
                                        command = self.set_cmd_AT,
                                        text="Add Transition", 
                                        width=16, height=2, 
                                        bg="green", fg="white")
-        self.AddTransition.pack()
+        self.btAddTransition.pack()
 
-        self.RmTransition = tk.Button(self.optionsHolder, 
+        self.btRmTransition = tk.Button(self.optionsHolder, 
                                       command = self.set_cmd_RT,
                                       text="Remove Transition", 
                                       width=16, height=2, 
                                       bg="red", fg="white")
-        self.RmTransition.pack()
+        self.btRmTransition.pack()
+
+        self.btInitialState = tk.Button(self.optionsHolder,
+                                        command = self.set_cmd_IS,
+                                        text="Initial State", 
+                                        width=16, height=2, 
+                                        bg="green", fg="white")
+        self.btInitialState.pack()
+
+        self.btFinalState = tk.Button(self.optionsHolder,
+                                        command = self.set_cmd_FS,
+                                        text="Final State", 
+                                        width=16, height=2, 
+                                        bg="red", fg="white")
+        self.btFinalState.pack()
+
         return
 
 
@@ -239,7 +309,9 @@ class Interface():
 
 
 
-        self.canvas.create_line(t1x, t1y, final[0], final[1], t2x, t2y, fill="#f11", width=2, smooth=1, tags="transition")
+        self.canvas.create_line(t1x, t1y, final[0], final[1], t2x, t2y, 
+                                fill="#f11", width=2, smooth=1, tags="transition", 
+                                arrow=tk.LAST, arrowshape=(20, 25, 10))
         
         
         
@@ -254,6 +326,51 @@ class Interface():
         for transition in transitions:
             self.show_transition(transition)
         return
+
+    def redraw_transitions(self, transitions):
+        self.canvas.delete("transition")
+        self.show_transitions(transitions)
+
+        for transition in transitions:
+            self.draw_transition_text(transition)
+
+        return
+
+    def draw_transition_text(self, transition):
+        t1, t2, _text = transition
+
+        t1x, t1y, t1r = self.circles_holder[t1]
+        t2x, t2y, t2r = self.circles_holder[t2]
+
+        offsetx1 = t1r * (t2x - t1x) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+        offsety1 = t1r * (t2y - t1y) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+
+        offsetx2 = t2r * (t1x - t2x) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+        offsety2 = t2r * (t1y - t2y) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
+
+        t1x += offsetx1
+        t1y += offsety1
+
+        t2x += offsetx2
+        t2y += offsety2
+
+        pmedio = ((t1x + t2x)/2, (t1y + t2y)/2)
+
+        vetor = ((t2x - t1x), (t2y - t1y))
+
+        vetordeslocado = -vetor[1]*0.4, vetor[0]*0.4
+
+        final = (pmedio[0] + vetordeslocado[0], pmedio[1] + vetordeslocado[1])
+
+        print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
+        number = self.number_of_transitions_beetween(t1, t2)
+
+        # erro aq, o texto fica errado pq ele procura todas as ocorrencias d transicoes
+        # entre os 2 estados, na hora d adcionar n tem nenhum ent vai certo, porem 
+        # agora q vai re adicionar ele ja esta com todos entao sempre vai pra msm posicao
+
+        self.canvas.create_text(final[0], final[1]+30*(number-1), text=_text, fill="#0000ff", font=("Arial", 24), tags="transition")
+        print("adicionado texto em ", final[0], final[1]+30*(number-1))
 
     def show_circle(self, coords, text):
         
@@ -271,6 +388,7 @@ class Interface():
             self.show_circle(circle, f"S{i}")
             self.circles_holder.append(circle)
             i += 1
+
         return
 
 
