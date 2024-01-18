@@ -195,7 +195,10 @@ class Interface():
             print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
             number = self.number_of_transitions_beetween(t1, t2)
 
-            self.canvas.create_text(final[0], final[1]+30*(number-1), text=values, fill="#0000ff", font=("Arial", 24), tags="transition")
+            if t1 == t2:
+                final = self.circles_holder[t1][0], self.circles_holder[t1][1]-45
+
+            self.canvas.create_text(final[0], final[1]-30*(number-1), text=values, fill="#0000ff", font=("Arial", 24), tags="transition")
             self.transitions_holder.append((t1, t2, values))
             self.aux_add_transition = None
             self.show_transitions(self.transitions_holder)
@@ -205,7 +208,26 @@ class Interface():
             sec_window.destroy()
             return
 
-        quitbutton = tk.Button(sec_window, text="OK", command=add_text_and_close)
+        def add_text_and_close2():
+            values = entry.get()
+
+            for transition in self.transitions_holder:
+                if t1 == transition[0] and t2 == transition[1]:
+                    transition[2].append(values)
+                    self.aux_add_transition = None
+                    self.redraw_transitions(self.transitions_holder)
+                    sec_window.destroy()
+                    return
+            
+            self.transitions_holder.append((t1, t2, [values]))
+
+            self.aux_add_transition = None
+            #self.show_transitions(self.transitions_holder)
+            self.redraw_transitions(self.transitions_holder)
+            sec_window.destroy()
+            return
+
+        quitbutton = tk.Button(sec_window, text="OK", command=add_text_and_close2)
         quitbutton.pack()
         
     def is_any_transition_with(self, t1, t2, values):
@@ -285,6 +307,14 @@ class Interface():
         t1x, t1y, t1r = self.circles_holder[t1]
         t2x, t2y, t2r = self.circles_holder[t2]
 
+
+        if t1 == t2:
+            self.canvas.create_arc(t1x-t1r, t1y-t1r-30, t1x+t1r, t1y+t1r, 
+                                outline="#ff0000", width=2, tags="transition", 
+                                start=0, extent=180, style=tk.ARC)
+            return
+
+
         offsetx1 = t1r * (t2x - t1x) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
         offsety1 = t1r * (t2y - t1y) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
         
@@ -304,20 +334,9 @@ class Interface():
 
         final = (pmedio[0] + vetordeslocado[0], pmedio[1] + vetordeslocado[1])
 
-
-
-
-
-
         self.canvas.create_line(t1x, t1y, final[0], final[1], t2x, t2y, 
                                 fill="#f11", width=2, smooth=1, tags="transition", 
                                 arrow=tk.LAST, arrowshape=(20, 25, 10))
-        
-        
-        
-
-    
-        
         return
 
     def show_transitions(self, transitions):
@@ -325,6 +344,7 @@ class Interface():
             return
         for transition in transitions:
             self.show_transition(transition)
+            #self.draw_transition_text(transition)
         return
 
     def redraw_transitions(self, transitions):
@@ -363,14 +383,20 @@ class Interface():
         final = (pmedio[0] + vetordeslocado[0], pmedio[1] + vetordeslocado[1])
 
         print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
-        number = self.number_of_transitions_beetween(t1, t2)
 
+        # --resolvido--
         # erro aq, o texto fica errado pq ele procura todas as ocorrencias d transicoes
         # entre os 2 estados, na hora d adcionar n tem nenhum ent vai certo, porem 
         # agora q vai re adicionar ele ja esta com todos entao sempre vai pra msm posicao
+        index = 0
+        print("size of _text", len(_text), _text)
+        print("transitions", self.transitions_holder)
+        for t in _text:
+            self.canvas.create_text(final[0], final[1]-30*(index-1), text=t, fill="#0000ff", font=("Arial", 24), tags="transition")
+            print("adicionado texto em ", final[0], final[1]+30*(index-1))
+            index +=1
 
-        self.canvas.create_text(final[0], final[1]+30*(number-1), text=_text, fill="#0000ff", font=("Arial", 24), tags="transition")
-        print("adicionado texto em ", final[0], final[1]+30*(number-1))
+
 
     def show_circle(self, coords, text):
         
