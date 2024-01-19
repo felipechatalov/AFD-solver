@@ -136,18 +136,18 @@ class Interface():
 
         elif self.command_state == "InitialState":
             self.InitialState = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
-            print(f"initial state set to {self.InitialState}")
+            #print(f"initial state set to {self.InitialState}")
             self.redraw_circles(self.circles_holder)
         elif self.command_state == "FinalState":
             self.FinalState = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
-            print(f"final state set to {self.FinalState}")
+            #print(f"final state set to {self.FinalState}")
             self.redraw_circles(self.circles_holder)
         return        
 
     def rm_transition(self, t1, t2):
         for transition in self.transitions_holder:
             if t1 == transition[0] and t2 == transition[1]:
-                print(f"removing transition {transition}")
+                #print(f"removing transition {transition}")
                 if len(transition[2]) == 1:
                     self.transitions_holder.remove(transition)
                 else:
@@ -350,11 +350,11 @@ class Interface():
 
         final = (pmedio[0] + vetordeslocado[0], pmedio[1] + vetordeslocado[1])
 
-        print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
+        #print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
 
         index = 0
-        print("size of _text", len(_text), _text)
-        print("transitions", self.transitions_holder)
+        #print("size of _text", len(_text), _text)
+        #print("transitions", self.transitions_holder)
 
         if t1 == t2:
             final = self.circles_holder[t1][0], self.circles_holder[t1][1]-45
@@ -415,7 +415,6 @@ class Interface():
             f.write(xml)
         return
 
-    # state = (x, y, r)
     def states_to_xml(self, xml, states):
         '''
         <state id="3" name="q3">&#13;
@@ -427,11 +426,10 @@ class Interface():
         index = 0
         for state in states:
             x, y = state[0], state[1]
-            # transform x y values to be beetwen 0 and 300
-            x = x * 300 / 1280
-            y = y * 300 / 720
 
-
+            # used to limit values to 300x300 inside simulator
+            #x = x * 300 / 1280
+            #y = y * 300 / 720
 
             xml += f"""
             \t<state id="{index}" name="S{index}">
