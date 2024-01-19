@@ -81,13 +81,13 @@ class Interface():
         print(self.InitialState)
         if self.InitialState is not None:
             ix, iy, ir = circles[self.InitialState]
-            self.canvas.create_oval(ix-ir+5, iy-ir+5, ix+ir-5, iy+ir-5, outline="#ff1020", width=2, tags="state")
+            self.canvas.create_oval(ix-ir+5, iy-ir+5, ix+ir-5, iy+ir-5, outline="#ffaa50", width=2, tags="state")
             self.canvas.create_text(ix, iy+20, text="Inicial", fill="#0000ff", font=("Arial", 24), tags="state")
         
         # extra circle for final state
         if self.FinalState is not None:
             fx, fy, fr = circles[self.FinalState]
-            self.canvas.create_oval(fx-fr+5, fy-fr+5, fx+fr-5, fy+fr-5, outline="#ff1020", width=2, tags="state")
+            self.canvas.create_oval(fx-fr+5, fy-fr+5, fx+fr-5, fy+fr-5, outline="#ff50aa", width=2, tags="state")
             self.canvas.create_text(fx, fy+20, text="Final", fill="#0000ff", font=("Arial", 24), tags="state")
 
         return
@@ -148,7 +148,10 @@ class Interface():
         for transition in self.transitions_holder:
             if t1 == transition[0] and t2 == transition[1]:
                 print(f"removing transition {transition}")
-                transition[2].pop(len(transition[2])-1)
+                if len(transition[2]) == 1:
+                    self.transitions_holder.remove(transition)
+                else:
+                    transition[2].pop(len(transition[2])-1)
                 break
         self.redraw_transitions(self.transitions_holder)
         
@@ -210,6 +213,10 @@ class Interface():
 
         def add_text_and_close2():
             values = entry.get()
+
+            if values == "":
+                print("Transition cant be empty")
+                return
 
             for transition in self.transitions_holder:
                 if t1 == transition[0] and t2 == transition[1]:
@@ -291,6 +298,13 @@ class Interface():
                                         width=16, height=2, 
                                         bg="red", fg="white")
         self.btFinalState.pack()
+
+        self.btSave = tk.Button(self.optionsHolder,
+                                command = self.save,
+                                text="Save", 
+                                width=16, height=2, 
+                                bg="blue", fg="white")
+        self.btSave.pack()
 
         return
 
@@ -384,13 +398,13 @@ class Interface():
 
         print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
 
-        # --resolvido--
-        # erro aq, o texto fica errado pq ele procura todas as ocorrencias d transicoes
-        # entre os 2 estados, na hora d adcionar n tem nenhum ent vai certo, porem 
-        # agora q vai re adicionar ele ja esta com todos entao sempre vai pra msm posicao
         index = 0
         print("size of _text", len(_text), _text)
         print("transitions", self.transitions_holder)
+
+        if t1 == t2:
+            final = self.circles_holder[t1][0], self.circles_holder[t1][1]-45
+
         for t in _text:
             self.canvas.create_text(final[0], final[1]-30*(index-1), text=t, fill="#0000ff", font=("Arial", 24), tags="transition")
             print("adicionado texto em ", final[0], final[1]+30*(index-1))
@@ -417,7 +431,6 @@ class Interface():
 
         return
 
-
     def show_image(self, path):
         if type(path) == str:
             path = imread(path, IMREAD_GRAYSCALE)
@@ -430,6 +443,68 @@ class Interface():
 
         self.canvas.create_image(0, 0, anchor=tk.NW, image=pimg)
         self.canvas.image = pimg 
+
+    def create_xml(self):
+        xml = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n"""
+        xml += """\t<structure>\n"""
+        xml += """\t<type>fa</type>\n"""
+        xml += """\t<automaton>"""
+        xml = self.states_to_xml(xml, self.circles_holder)
+        xml = self.transitions_to_xml(xml, self.transitions_holder)
+        xml += """\t</automaton>\n"""
+        xml += """</structure>\n"""
+        return xml
+
+    def save(self):
+        xml = self.create_xml()
+        with open("output.jff", "w") as f:
+            f.write(xml)
+        return
+
+    # state = (x, y, r)
+    def states_to_xml(self, xml, states):
+        '''
+        <state id="3" name="q3">&#13;
+			<x>318.0</x>&#13;
+			<y>213.0</y>&#13;
+		</state>&#13;
+        ''' 
+
+        index = 0
+        for state in states:
+            x, y = state[0], state[1]
+            # transform x y values to be beetwen 0 and 300
+            x = x * 300 / 1280
+            y = y * 300 / 720
+
+
+
+            xml += f"""
+            \t<state id="{index}" name="S{index}">
+            \t\t<x>{x}</x>
+            \t\t<y>{y}</y>
+            \t</state>"""
+            index += 1
+        return xml
+
+    def transitions_to_xml(self, xml, transitions):
+        '''
+        <transition>&#13;
+			<from>2</from>&#13;
+			<to>3</to>&#13;
+			<read>eaaaa</read>&#13;
+		</transition>&#13;
+        '''
+
+        for transition in transitions:
+            for value in transition[2]:
+                xml += f"""
+                <transition>
+                \t<from>{transition[0]}</from>
+                \t<to>{transition[1]}</to>
+                \t<read>{value}</read>
+                </transition>"""
+        return xml
 
 def create_window():
     return Interface(ROOT)
