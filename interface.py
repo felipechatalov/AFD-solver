@@ -164,52 +164,6 @@ class Interface():
         entry = tk.Entry(sec_window)
         entry.pack()
 
-        def add_text_and_close():
-            values = entry.get()
-
-            if self.is_any_transition_with(t1, t2, values):
-                print("existing transition")
-                return
-
-
-            t1x, t1y, t1r = self.circles_holder[t1]
-            t2x, t2y, t2r = self.circles_holder[t2]
-
-            offsetx1 = t1r * (t2x - t1x) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
-            offsety1 = t1r * (t2y - t1y) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
-
-            offsetx2 = t2r * (t1x - t2x) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
-            offsety2 = t2r * (t1y - t2y) / ((t2x - t1x)**2 + (t2y - t1y)**2)**0.5
-
-            t1x += offsetx1
-            t1y += offsety1
-
-            t2x += offsetx2
-            t2y += offsety2
-
-            pmedio = ((t1x + t2x)/2, (t1y + t2y)/2)
-
-            vetor = ((t2x - t1x), (t2y - t1y))
-
-            vetordeslocado = -vetor[1]*0.4, vetor[0]*0.4
-
-            final = (pmedio[0] + vetordeslocado[0], pmedio[1] + vetordeslocado[1])
-
-            print('number of transitions beetween', t1, t2, self.number_of_transitions_beetween(t1, t2))
-            number = self.number_of_transitions_beetween(t1, t2)
-
-            if t1 == t2:
-                final = self.circles_holder[t1][0], self.circles_holder[t1][1]-45
-
-            self.canvas.create_text(final[0], final[1]-30*(number-1), text=values, fill="#0000ff", font=("Arial", 24), tags="transition")
-            self.transitions_holder.append((t1, t2, values))
-            self.aux_add_transition = None
-            self.show_transitions(self.transitions_holder)
-            print("adicionado texto em ", final[0], final[1]+30*(number-1))
-
-
-            sec_window.destroy()
-            return
 
         def add_text_and_close2():
             values = entry.get()
