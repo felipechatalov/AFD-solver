@@ -148,7 +148,7 @@ class Interface():
         for transition in self.transitions_holder:
             if t1 == transition[0] and t2 == transition[1]:
                 print(f"removing transition {transition}")
-                self.transitions_holder.remove(transition)
+                transition[2].pop(len(transition[2])-1)
                 break
         self.redraw_transitions(self.transitions_holder)
         
