@@ -78,7 +78,7 @@ class Interface():
             i+=1
         
         # extra circle for initial state
-        print(self.InitialState)
+        #print(self.InitialState)
         if self.InitialState is not None:
             ix, iy, ir = circles[self.InitialState]
             self.canvas.create_oval(ix-ir+5, iy-ir+5, ix+ir-5, iy+ir-5, outline="#ffaa50", width=2, tags="state")
@@ -111,24 +111,24 @@ class Interface():
 
             if self.aux_add_transition is None:
                 self.aux_add_transition = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
-                print(f"aux_add_transition set to {self.aux_add_transition}")
+                #print(f"aux_add_transition set to {self.aux_add_transition}")
             else:
                 aux = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
-                print(f"aux is {aux}")
+                #print(f"aux is {aux}")
                 if self.aux_add_transition is not None and aux is not None:
-                    print(f"adding transition from S{self.aux_add_transition} to S{aux}")
+                    #print(f"adding transition from S{self.aux_add_transition} to S{aux}")
                     
                     self.add_transition(self.aux_add_transition, aux)
                 
         elif self.command_state == "RmTransition":
             if self.aux_rm_transition is None:
                 self.aux_rm_transition = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
-                print(f"aux_rm_transition set to {self.aux_rm_transition}")
+                #print(f"aux_rm_transition set to {self.aux_rm_transition}")
             else:
                 aux = self.is_inside_any_circle(event.x, event.y, self.circles_holder)
-                print(f"aux is {aux}")
+                #print(f"aux is {aux}")
                 if self.aux_rm_transition is not None and aux is not None:
-                    print(f"removing first transition from S{self.aux_rm_transition} to S{aux}")
+                    #print(f"removing first transition from S{self.aux_rm_transition} to S{aux}")
                     self.rm_transition(self.aux_rm_transition, aux)
                     self.aux_rm_transition = None
 
@@ -318,10 +318,15 @@ class Interface():
     def redraw_transitions(self, transitions):
         self.canvas.delete("transition")
         self.show_transitions(transitions)
+        self.show_transitions_text(transitions)
 
+        return
+
+    def show_transitions_text(self, transitions):
+        if transitions == []:
+            return
         for transition in transitions:
             self.draw_transition_text(transition)
-
         return
 
     def draw_transition_text(self, transition):
@@ -404,6 +409,7 @@ class Interface():
         xml += """\t<type>fa</type>\n"""
         xml += """\t<automaton>"""
         xml = self.states_to_xml(xml, self.circles_holder)
+        xml += "\n"
         xml = self.transitions_to_xml(xml, self.transitions_holder)
         xml += """\t</automaton>\n"""
         xml += """</structure>\n"""
@@ -430,12 +436,18 @@ class Interface():
             # used to limit values to 300x300 inside simulator
             #x = x * 300 / 1280
             #y = y * 300 / 720
+                
+             
+            xml += f'\n\t\t<state id="{index}" name="S{index}">'
+            xml += f'\n\t\t\t<x>{x}</x>'
+            xml += f'\n\t\t\t<y>{y}</y>'
 
-            xml += f"""
-            \t<state id="{index}" name="S{index}">
-            \t\t<x>{x}</x>
-            \t\t<y>{y}</y>
-            \t</state>"""
+            if index == self.InitialState:
+                xml += "\n\t\t\t<initial/>"
+            if index == self.FinalState:
+                xml += "\n\t\t\t<final/>"
+            xml += "\n\t\t</state>"
+
             index += 1
         return xml
 
@@ -450,12 +462,11 @@ class Interface():
 
         for transition in transitions:
             for value in transition[2]:
-                xml += f"""
-                <transition>
-                \t<from>{transition[0]}</from>
-                \t<to>{transition[1]}</to>
-                \t<read>{value}</read>
-                </transition>"""
+                xml += '\n\t\t<transition>'
+                xml += f'\n\t\t\t<from>{transition[0]}</from>'
+                xml += f'\n\t\t\t<to>{transition[1]}</to>'
+                xml += f'\n\t\t\t<read>{value}</read>'
+                xml += '\n\t\t</transition>'
         return xml
 
 def create_window():
