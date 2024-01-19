@@ -411,7 +411,7 @@ class Interface():
         xml = self.states_to_xml(xml, self.circles_holder)
         xml += "\n"
         xml = self.transitions_to_xml(xml, self.transitions_holder)
-        xml += """\t</automaton>\n"""
+        xml += """\n\t</automaton>\n"""
         xml += """</structure>\n"""
         return xml
 
