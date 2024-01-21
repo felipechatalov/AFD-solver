@@ -3,6 +3,8 @@ import numpy as np
 import os
 import sys
 import matplotlib.pyplot as plt
+import easyocr
+
 
 import interface
 
@@ -49,22 +51,37 @@ def read_data():
     return test_files
 
 
+def read_ocr(img_path):
+    reader = easyocr.Reader(['en'])
+    img = cv2.imread(img_path)
+    result = reader.readtext(img)
+    return result
+
+
 def test_image_interface(img_path):
     app = interface.create_window()
 
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        print("Image not found")
+        return 0
     img = cv2.resize(img, (WIDTH_CAP, HEIGHT_CAP))
     
     processed_img = pre_process(img)
     circles = detect_circles(processed_img)
 
-    transitions = detect_transitions(processed_img)
-
+    #transitions = detect_transitions(processed_img)
+    print(img_path)
+    text = read_ocr(img_path)
+    print(text)
+    
 
 
     app.show_image(img_path)
     app.show_circles_at(circles)
-    app.show_transitions(transitions)
+    # need to be after img and circles because it redraws everything on screen
+    for t in text:
+        app.draw_square_text_at(t[0], t[1])
 
     app.master.mainloop()
     return 0

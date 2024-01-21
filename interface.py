@@ -4,14 +4,6 @@ from PIL import Image, ImageTk
 
 ROOT = tk.Tk()
 
-CIRCLES_LIST = [[717.5, 651.5, 47.2],
-                [838.5, 264.5, 40.5],
-                [215.5, 556.5, 42.7],
-                [186.5, 252.5, 41.4],
-                [842.5, 172.5, 34.3],
-                [620.5, 279.5, 32.9],
-                [508.5, 499.5, 34.3],
-                [ 35.5, 279.5, 37.3]]
 
 class Interface():
     def __init__(self, master, MAX_WIDTH=1280, MAX_HEIGHT=720):
@@ -156,6 +148,13 @@ class Interface():
         self.redraw_transitions(self.transitions_holder)
         
 
+    def draw_square_text_at(self, coord, _text):
+        c1, c2, c3, c4 = coord
+
+        self.canvas.create_text(c1[0]+(c2[0]-c1[0])/2, c1[1]-15+(c2[1]-c1[1])/2, text=_text, fill="#0000ff", font=("Arial", 24), tags="text")
+        self.canvas.create_rectangle(coord[0][0], coord[0][1], coord[2][0], coord[2][1], outline="#f11", width=2, tags="text2")
+        print(f"drawn square text at {coord}, {_text}")
+        return
 
     def add_transition(self, t1, t2):
         sec_window = tk.Toplevel(self.master)
