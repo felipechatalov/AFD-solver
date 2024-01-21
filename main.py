@@ -70,7 +70,8 @@ def test_image_interface(img_path):
     processed_img = pre_process(img)
     circles = detect_circles(processed_img)
 
-    #transitions = detect_transitions(processed_img)
+    transitions = detect_transitions(processed_img)
+    
     print(img_path)
     text = read_ocr(img_path)
     print(text)
@@ -195,11 +196,29 @@ def detect_circles(img):
     return circles
 
 def detect_transitions(img):
-    lines = detect_lines(img)
+    
+    edges = cv2.Canny(img, 50, 150)
 
-    print(lines)
+    rho = 1
+    theta = np.pi/180
+    threshold = 15
+    min_line_length = 50
+    max_line_gap = 20
+    line_image = img.copy()
+
+    lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]),
+                                min_line_length, max_line_gap)
+    
+    for line in lines:
+        for x1,y1,x2,y2 in line:
+            cv2.line(line_image,(x1,y1),(x2,y2),(255,255,255),5)    
+
+    lines_edges = cv2.addWeighted(img, 0.8, line_image, 1, 0)
+    print(lines_edges.shape)
+    show_image(line_image)
 
     return []
+
 
 def detect_lines(img):
     cont, hier = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
