@@ -24,7 +24,8 @@ HEIGHT_CAP = 720
 
 
 def show_image(img):
-    cv2.imshow("image", img.resize((WIDTH_CAP, HEIGHT_CAP)))
+    img = cv2.resize(img, (WIDTH_CAP, HEIGHT_CAP))
+    cv2.imshow("image", img)
     # checks if any key was pressed or the 'X' button in the window was pressed
     while cv2.getWindowProperty("image", cv2.WND_PROP_VISIBLE) > 0:
         if cv2.waitKey(100) > 0:
@@ -32,113 +33,96 @@ def show_image(img):
     cv2.destroyAllWindows()
     return 0
 
-def show_comparison(initial_img, img):
 
-    full_img = np.concatenate((initial_img, img), axis=1)
+def detect_letters_tesseract(img):
+    import pytesseract
 
-    cv2.imshow("image", full_img.resize((WIDTH_CAP, HEIGHT_CAP)))
-    # checks if any key was pressed or the 'X' button in the window was pressed
-    while cv2.getWindowProperty("image", cv2.WND_PROP_VISIBLE) > 0:
-        if cv2.waitKey(100) > 0:
-            break
-    cv2.destroyAllWindows()
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    hImg, wImg, _ = img.shape
+    boxes = pytesseract.image_to_boxes(img)
+    print(boxes)
+    for b in boxes.splitlines():
+        b = b.split(' ')
+        x, y, w, h = int(b[1]), int(b[2]), int(b[3]), int(b[4])
+        cv2.rectangle(img, (x, wImg-y), (w, hImg-h), (0, 0, 255), 1)
+        cv2.putText(img, b[0], (x, hImg-y+25), cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 255), 2)
+    show_image(img)
     return 0
 
-def read_data():
-    test_files = []
-    for file in os.listdir(os.path.join(os.getcwd(), IMG_TEST_FOLDER)):
-        test_files.append(os.path.join(os.getcwd(), IMG_TEST_FOLDER, file))
-    return test_files
-
-
-def read_ocr(img_path):
+def detect_letters_easyocr(img):
     reader = easyocr.Reader(['en'])
-    img = cv2.imread(img_path)
+    #img = cv2.imread(img_path)
     result = reader.readtext(img)
     return result
 
 
-def test_image_interface(img_path):
-    app = interface.create_window()
-
+def test_image_interface(img_path: str) -> int:
+    # read image
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
         print("Image not found")
         return 0
     img = cv2.resize(img, (WIDTH_CAP, HEIGHT_CAP))
-    
+
+    # pre process image to detect contours    
     processed_img = pre_process(img)
     circles = detect_circles(processed_img)
 
-    transitions = detect_transitions(processed_img)
+    # try some letters/transitions detection
+    text_easyocr = detect_letters_easyocr(img)
+    text_tesseract = detect_letters_tesseract(img)
+
+    detect_transitions(img)
     
-    print(img_path)
-    text = read_ocr(img_path)
-    print(text)
     
 
+    # instanciate the interface
+    app = interface.create_window()
 
+    # draw image then states
     app.show_image(img_path)
     app.show_circles_at(circles)
+
+    # draw text detected and square arround it
     # need to be after img and circles because it redraws everything on screen
-    for t in text:
+    for t in text_easyocr:
         app.draw_square_text_at(t[0], t[1])
 
+    # run the interface
     app.master.mainloop()
     return 0
 
-def test_data(files):
-    for file in files:
-        test_image_step_by_step(file)
-    return 0
-
-
-def pre_process(img):
+def pre_process(img: cv2.Mat) -> cv2.Mat:
+    # copy image to not modify the original
     img_copy = img.copy()
+    show_image(img_copy)
+
+    # create new blank image 
     new_img = cv2.cvtColor(np.zeros(img_copy.shape, np.uint8), cv2.COLOR_GRAY2RGB)
 
+    # blur image
+    img_copy = cv2.GaussianBlur(img_copy, (5, 5), 0)
+
+    # binarize image
     threshold_img = cv2.adaptiveThreshold(img_copy, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
+    show_image(threshold_img)
+
+    # invert image to have black background
+    threshold_img = cv2.bitwise_not(threshold_img)
+    show_image(threshold_img)
 
     contours = detect_contours(threshold_img)
 
     new_img_contours = draw_contours(new_img, contours, (255, 255, 255))
+    show_image(new_img_contours)
+    
+    #output_img = dilate(new_img_contours)
 
-    output_img = dilate(new_img_contours)
-
-    output_img = cv2.cvtColor(output_img, cv2.COLOR_RGB2GRAY)
+    output_img = cv2.cvtColor(new_img_contours, cv2.COLOR_RGB2GRAY)
     
     return output_img
   
-
-# read and process image passing its path
-def test_image_step_by_step(img_path):
-    # open source img in grayscale, colored and blank image
-    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-    img_colored = cv2.imread(img_path, cv2.IMREAD_COLOR)
-    new_img = cv2.cvtColor(np.zeros(img.shape, np.uint8), cv2.COLOR_GRAY2RGB)
-
-    # pre process
-    img_preprocess = pre_process(img)
-
-    # detect circles
-    circles = detect_circles(img_preprocess)
-
-    # draw circles in blank image
-    #new_img = cv2.cvtColor(new_img, cv2.COLOR_GRAY2RGB)
-    new_img = draw_circles(new_img, circles)
-    
-    # draw circles in colored image
-    img_colored_circles = draw_circles(img_colored, circles)
-
-    ts = detect_lines(img_preprocess)
-
-    img_colored_circles = debug_draw_quads(img_colored_circles, ts)
-    # concatenate images
-    big_img = np.concatenate((img_colored_circles, cv2.cvtColor(img_preprocess, cv2.COLOR_GRAY2RGB)), axis=1)
-
-    # show images
-    show_comparison(new_img, big_img)
-    return 0
 
 def dilate(img, kernel_size=3, it=1):
     output_img = img.copy()
@@ -196,28 +180,31 @@ def detect_circles(img):
     return circles
 
 def detect_transitions(img):
-    
-    edges = cv2.Canny(img, 50, 150)
+    img_copy = img.copy()
+
+    img_copy = cv2.GaussianBlur(img_copy, (5, 5), 0)
+
+    edges = cv2.Canny(img_copy, 50, 150)
 
     rho = 1
     theta = np.pi/180
     threshold = 15
-    min_line_length = 50
-    max_line_gap = 20
+    min_line_length = 150
+    max_line_gap = 40
     line_image = img.copy()
 
     lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]),
                                 min_line_length, max_line_gap)
     
+    
     for line in lines:
         for x1,y1,x2,y2 in line:
-            cv2.line(line_image,(x1,y1),(x2,y2),(255,255,255),5)    
+            cv2.line(line_image,(x1,y1),(x2,y2),60,5)    
 
     lines_edges = cv2.addWeighted(img, 0.8, line_image, 1, 0)
-    print(lines_edges.shape)
-    show_image(line_image)
+    show_image(lines_edges)
 
-    return []
+    return lines
 
 
 def detect_lines(img):
@@ -256,13 +243,14 @@ def draw_contours(img, contours, color = (0, 0, 255)):
     return new_img
 
 def main():
-    if len(sys.argv) > 1:
-        user_path = sys.argv[1]
-        test_image_interface(user_path)
+    if len(sys.argv) != 2:
+        print("Usage: python main.py <image_path>")
         return 0
-
-    to_test = read_data()
-    test_data(to_test)
+    img_path = sys.argv[1]
+    if not os.path.isfile(img_path):
+        print("File not found")
+        return 0
+    test_image_interface(img_path) 
 
     return 0
 
