@@ -56,8 +56,7 @@ def detect_letters_easyocr(img):
     result = reader.readtext(img)
     return result
 
-
-def test_image_interface(img_path: str) -> int:
+def detect_features(img_path: str) -> int:
     # read image
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
@@ -71,9 +70,9 @@ def test_image_interface(img_path: str) -> int:
 
     # try some letters/transitions detection
     text_easyocr = detect_letters_easyocr(img)
-    text_tesseract = detect_letters_tesseract(img)
+    #text_tesseract = detect_letters_tesseract(img)
 
-    detect_transitions(img)
+    #detect_transitions(img)
     
     
 
@@ -81,6 +80,7 @@ def test_image_interface(img_path: str) -> int:
     app = interface.create_window()
 
     # draw image then states
+
     app.show_image(img_path)
     app.show_circles_at(circles)
 
@@ -94,68 +94,22 @@ def test_image_interface(img_path: str) -> int:
     return 0
 
 def pre_process(img: cv2.Mat) -> cv2.Mat:
-    # copy image to not modify the original
     img_copy = img.copy()
-    show_image(img_copy)
-
-    # create new blank image 
     new_img = cv2.cvtColor(np.zeros(img_copy.shape, np.uint8), cv2.COLOR_GRAY2RGB)
 
-    # blur image
-    img_copy = cv2.GaussianBlur(img_copy, (5, 5), 0)
-
-    # binarize image
     threshold_img = cv2.adaptiveThreshold(img_copy, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2 )
-    show_image(threshold_img)
-
-    # invert image to have black background
     threshold_img = cv2.bitwise_not(threshold_img)
-    show_image(threshold_img)
 
     contours = detect_contours(threshold_img)
 
     new_img_contours = draw_contours(new_img, contours, (255, 255, 255))
-    show_image(new_img_contours)
-    
+
     #output_img = dilate(new_img_contours)
 
     output_img = cv2.cvtColor(new_img_contours, cv2.COLOR_RGB2GRAY)
     
     return output_img
   
-
-def dilate(img, kernel_size=3, it=1):
-    output_img = img.copy()
-
-    
-    kernel = np.ones((kernel_size,kernel_size),np.uint8)
-    output_img = cv2.dilate(output_img, kernel, iterations = it)
-    
-    #output_img = cv2.medianBlur(output_img, 5)
-
-    return output_img
-
-def is_point_inside_quad(point, quad):
-    x, y = point
-    x1, y1, x2, y2, x3, y3, x4, y4 = quad
-    if x1 <= x <= x2 and y1 <= y <= y2:
-        return True
-    if x2 <= x <= x3 and y2 <= y <= y3:
-        return True
-    if x3 <= x <= x4 and y3 <= y <= y4:
-        return True
-    if x4 <= x <= x1 and y4 <= y <= y1:
-        return True
-    return False
-
-def debug_draw_quads(img, quads):
-
-    for q in quads:
-        x1, y1, w, h = q
-        cv2.rectangle(img, (x1, y1), (x1+w, y1+h), (0, 0, 255), 3)
-
-    return img
-
 
 def draw_circles(img, circles):
     output = img.copy()
@@ -202,7 +156,7 @@ def detect_transitions(img):
             cv2.line(line_image,(x1,y1),(x2,y2),60,5)    
 
     lines_edges = cv2.addWeighted(img, 0.8, line_image, 1, 0)
-    show_image(lines_edges)
+    #show_image(lines_edges)
 
     return lines
 
@@ -246,7 +200,7 @@ def draw_contours(img, contours, color = (0, 0, 255)):
 def run_all_dir(dir_path: str) -> int:
     for img in os.listdir(dir_path):
         img_path = os.path.join(dir_path, img)
-        test_image_interface(img_path)
+        detect_features(img_path)
     return 0
 
 def main():
@@ -261,7 +215,7 @@ def main():
     if not os.path.isfile(img_path):
         print("File not found")
         return 0
-    test_image_interface(img_path) 
+    detect_features(img_path) 
 
     return 0
 
