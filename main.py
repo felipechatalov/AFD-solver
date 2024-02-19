@@ -34,7 +34,7 @@ def show_image(img):
     return 0
 
 
-def detect_letters_tesseract(img):
+def detect_letters_tesseract(img: cv2.Mat):
     import pytesseract
 
 
@@ -167,7 +167,7 @@ def draw_circles(img, circles):
         print(f"drawn {len(circles)} circles")
     return output
 
-def detect_circles(img):
+def detect_circles(img: cv2.Mat) -> list:
     circles = []  
     circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=1, minDist=30, 
                                 param1=75, param2=20, maxRadius=50, minRadius=10)
@@ -221,7 +221,7 @@ def detect_lines(img):
     return lines
 
 
-def detect_contours(img):
+def detect_contours(img: cv2.Mat) -> list:
     contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
     contours_final = []
@@ -242,10 +242,21 @@ def draw_contours(img, contours, color = (0, 0, 255)):
     cv2.drawContours(new_img, contours, -1, color, 2)
     return new_img
 
+
+def run_all_dir(dir_path: str) -> int:
+    for img in os.listdir(dir_path):
+        img_path = os.path.join(dir_path, img)
+        test_image_interface(img_path)
+    return 0
+
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) > 4:
         print("Usage: python main.py <image_path>")
         return 0
+    if sys.argv[1] == "-d":
+        run_all_dir(sys.argv[2])
+        return 0
+    
     img_path = sys.argv[1]
     if not os.path.isfile(img_path):
         print("File not found")
