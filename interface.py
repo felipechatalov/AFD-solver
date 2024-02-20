@@ -394,8 +394,9 @@ class Interface():
             path = imread(path, IMREAD_GRAYSCALE)
 
         img = Image.fromarray(path)
-
-        img = img.resize((1280, 720))
+        print(img.size, "AHJDKASHJGKDAJLSHKADJKLGHSGADHJSDAHJSGADSGHJKHJDGKSAHGJDAS")
+        if img.size[0] > 1280 or img.size[1] > 720:
+            img = img.resize((1280, 720))
         pimg = ImageTk.PhotoImage(img)
         #self.image_holder = pimg
 

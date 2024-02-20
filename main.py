@@ -67,9 +67,8 @@ def detect_features(img_path: str) -> int:
     # pre process image to detect contours    
     processed_img = pre_process(img)
     circles = detect_circles(processed_img)
-
     # try some letters/transitions detection
-    text_easyocr = detect_letters_easyocr(img)
+    #text_easyocr = detect_letters_easyocr(img)
     #text_tesseract = detect_letters_tesseract(img)
 
     #detect_transitions(img)
@@ -86,8 +85,8 @@ def detect_features(img_path: str) -> int:
 
     # draw text detected and square arround it
     # need to be after img and circles because it redraws everything on screen
-    for t in text_easyocr:
-        app.draw_square_text_at(t[0], t[1])
+    #for t in text_easyocr:
+    #    app.draw_square_text_at(t[0], t[1])
 
     # run the interface
     app.master.mainloop()
@@ -124,7 +123,7 @@ def draw_circles(img, circles):
 def detect_circles(img: cv2.Mat) -> list:
     circles = []  
     circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=1, minDist=30, 
-                                param1=75, param2=20, maxRadius=50, minRadius=10)
+                                param1=75, param2=20, maxRadius=50, minRadius=25)
     if circles is not None:
         print(f"detected {len(circles[0])} circles")
         circles = circles[0]
